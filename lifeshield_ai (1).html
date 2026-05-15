@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LifeShield AI</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: #050505; color: white; line-height: 1.6; }
+
+    .login-screen {
+      min-height: 100vh; display: flex; justify-content: center; align-items: center;
+      padding: 30px; background: radial-gradient(circle at top, #063d2a, #000000 55%);
+    }
+
+    .login-card {
+      width: 100%; max-width: 450px; background: #101010; border: 1px solid #00ff99;
+      border-radius: 25px; padding: 35px; box-shadow: 0 0 35px rgba(0,255,153,0.25);
+    }
+
+    .login-card h1 { color: #00ff99; font-size: 42px; text-align: center; margin-bottom: 10px; }
+    .login-card p { text-align: center; color: #ccc; margin-bottom: 25px; }
+
+    label { color: #00ff99; font-weight: bold; }
+    input, select {
+      width: 100%; padding: 14px; margin-top: 8px; margin-bottom: 18px;
+      border-radius: 10px; border: 1px solid #333; background: #050505; color: white; font-size: 16px;
+    }
+
+    button {
+      background: #00ff99; color: black; padding: 14px 25px; border: none; border-radius: 30px;
+      font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; margin-right: 10px;
+    }
+
+    button:hover { background: white; }
+    .logout-btn { background: #ff4d4d; color: white; }
+
+    .message-box { margin-top: 20px; padding: 18px; border-radius: 12px; display: none; }
+    .error { background: #2b0909; border-left: 5px solid #ff4d4d; }
+    .success { background: #061f17; border-left: 5px solid #00ff99; }
+    .info { background: #07182b; border-left: 5px solid #4da6ff; }
+
+    .demo-note {
+      margin-top: 20px; padding: 15px; background: #050505; border-radius: 12px;
+      border: 1px solid #333; color: #aaa; font-size: 14px;
+    }
+
+    #mainWebsite { display: none; }
+
+    header {
+      background: linear-gradient(135deg, #000000, #06251b);
+      padding: 60px 10%; text-align: center;
+    }
+
+    header h1 { font-size: 55px; color: #00ff99; margin-bottom: 15px; }
+    header p { font-size: 20px; color: #d0d0d0; max-width: 800px; margin: auto; }
+
+    nav {
+      background: #0b0b0b; padding: 15px; text-align: center;
+      border-bottom: 1px solid #00ff99; position: sticky; top: 0; z-index: 10;
+    }
+
+    nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: bold; }
+    nav a:hover { color: #00ff99; }
+
+    section { padding: 60px 10%; }
+    h2 { color: #00ff99; font-size: 34px; margin-bottom: 20px; }
+
+    .card-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px; margin-top: 30px;
+    }
+
+    .card, .dashboard {
+      background: #111; border: 1px solid #1f1f1f; border-radius: 18px;
+      padding: 25px; transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-8px); border-color: #00ff99;
+      box-shadow: 0 0 20px rgba(0,255,153,0.25);
+    }
+
+    .card h3 { color: #00ff99; margin-bottom: 10px; }
+    .dashboard { border-color: #00ff99; margin-top: 30px; }
+
+    .top-dashboard {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 15px; margin-bottom: 25px;
+    }
+
+    .status-pill {
+      padding: 12px 18px; border-radius: 15px; background: #061f17; border: 1px solid #00ff99;
+    }
+
+    .dashboard-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px; margin-top: 20px;
+    }
+
+    .data-box {
+      background: #050505; border-radius: 15px; padding: 20px;
+      text-align: center; border: 1px solid #333;
+    }
+
+    .data-box span {
+      display: block; font-size: 30px; color: #00ff99;
+      font-weight: bold; margin-top: 10px;
+    }
+
+    #aiResult, #emergencyBox {
+      margin-top: 22px; padding: 20px; border-radius: 12px;
+    }
+
+    #aiResult {
+      display: none; background: #061f17; border-left: 5px solid #00ff99;
+    }
+
+    #emergencyBox {
+      display: none; background: #2b0909; border-left: 5px solid #ff4d4d;
+    }
+
+    footer {
+      background: #000; text-align: center; padding: 30px;
+      color: #aaa; border-top: 1px solid #222;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <h1>LifeShield AI</h1>
+      <p>Authorized medical staff login required before entering the AI health system.</p>
+
+      <label>Username</label>
+      <input type="text" id="loginName" placeholder="Example: admin" />
+
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" />
+
+      <button onclick="patientLogin()">Secure Login</button>
+
+      <div class="demo-note">
+        <strong>Demo Login:</strong><br />
+        Username: admin<br />
+        Password: lifeshield123<br />
+        Authorized Medical Team Access
+      </div>
+
+      <div id="loginMessage" class="message-box error"></div>
+      <div id="warningMessage" class="message-box info"></div>
+    </div>
+  </div>
+
+  <div id="mainWebsite">
+    <header>
+      <h1>LifeShield AI</h1>
+      <p>An AI-powered healthcare and cybersecurity ecosystem that protects patient data and predicts health risks before they become dangerous.</p>
+    </header>
+
+    <nav>
+      <a href="#problem">Problem</a>
+      <a href="#solution">Solution</a>
+      <a href="#features">Features</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#conclusion">Conclusion</a>
+    </nav>
+
+    <section id="problem">
+      <h2>Healthcare and Cybersecurity Problem</h2>
+      <p>
+        Many patients do not realize health problems early enough. A fast heartbeat, low heartbeat, stress, or weakness can be ignored until the condition becomes dangerous.
+        At the same time, hospitals and digital health systems store sensitive patient information. If this data is not protected, unauthorized people can access private health records.
+      </p>
+
+      <div class="card-container">
+        <div class="card"><h3>Late Detection</h3><p>Patients may notice symptoms too late, especially elderly people or people living alone.</p></div>
+        <div class="card"><h3>Data Privacy Risk</h3><p>Health information is very sensitive and must be protected from unauthorized access.</p></div>
+        <div class="card"><h3>Emergency Delay</h3><p>If nobody is watching the patient, emergency help may arrive late.</p></div>
+      </div>
+    </section>
+
+    <section id="solution">
+      <h2>Our Original Solution</h2>
+      <p>
+        LifeShield AI is designed as a secure AI health assistant for hospitals and patients. A medical staff member logs in first, selects a patient, enters health data, and the AI gives a risk analysis.
+        The system combines healthcare monitoring with cybersecurity protection.
+      </p>
+
+      <div style="margin-top:30px;background:#061f17;border:1px solid #00ff99;border-radius:22px;padding:28px;">
+        <h3 style="color:#00ff99;margin-bottom:15px;">How LifeShield AI Works</h3>
+        <p><strong>1.</strong> Authorized staff logs in securely.</p>
+        <p><strong>2.</strong> Staff selects the patient from the protected patient list.</p>
+        <p><strong>3.</strong> Heart rate, oxygen, stress, and sleep data are entered.</p>
+        <p><strong>4.</strong> AI analyzes the health risk and gives a recommendation.</p>
+        <p><strong>5.</strong> If risk is dangerous, the system prepares an emergency alert.</p>
+      </div>
+    </section>
+
+    <section id="features">
+      <h2>Special Features</h2>
+      <p>This section shows the extra technologies that make LifeShield AI stronger than a normal health website.</p>
+
+      <div class="card-container">
+        <div class="card"><h3>Secure Staff Login</h3><p>Only authorized medical staff can enter the system with the correct username and password.</p></div>
+        <div class="card"><h3>Patient Selection</h3><p>The staff can choose different patients and check each patient separately.</p></div>
+        <div class="card"><h3>AI Risk Classification</h3><p>The system classifies health risk as normal, warning, high, or danger.</p></div>
+        <div class="card"><h3>Security Warning System</h3><p>If wrong login information is entered, the system blocks access and shows a cybersecurity alert.</p></div>
+        <div class="card"><h3>Health Explanation</h3><p>After analysis, the system explains the possible problem and gives health recommendations.</p></div>
+        <div class="card"><h3>Emergency Preparation</h3><p>For dangerous values, LifeShield AI prepares a secure emergency message.</p></div>
+      </div>
+    </section>
+
+    <section id="dashboard">
+      <h2>Protected Patient Dashboard</h2>
+
+      <div class="dashboard">
+        <div class="top-dashboard">
+          <div>
+            <h3 style="color:#00ff99;">Welcome, <span id="patientWelcome">Administrator</span></h3>
+            <p style="color:#aaa;">You are logged in as medical staff. Select a patient and analyze their health data.</p>
+          </div>
+          <div class="status-pill">
+            <strong style="color:#00ff99;">SECURITY:</strong>
+            <span> Admin Identity Verified</span>
+          </div>
+        </div>
+
+        <div class="message-box success" style="display:block;">
+          <strong>Cybersecurity Status:</strong>
+          <p>Access granted. Staff identity confirmed. Health data is protected from unauthorized users.</p>
+        </div>
+
+        <div class="message-box info" style="display:block;">
+          <strong>Biometric Security Simulation:</strong>
+          <p>Face recognition verified. Voice pattern matched. Secure session started.</p>
+        </div>
+
+        <br />
+        <label>Select Patient</label>
+        <select id="selectedPatient">
+          <option value="Maria">Maria - Heart Patient</option>
+          <option value="Ahmed">Ahmed - Diabetes Patient</option>
+          <option value="Elif">Elif - Stress Monitoring</option>
+          <option value="ismail">ismail - Elderly Care</option>
+        </select>
+
+        <label>Enter Patient Heart Rate</label>
+        <input type="number" id="heartInput" placeholder="Example: 85" />
+
+        <label>Blood Oxygen Level (%)</label>
+        <input type="number" id="oxygenInput" placeholder="Example: 98" />
+
+        <label>Stress Level</label>
+        <select id="stressInput">
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+
+        <label>Sleep Hours</label>
+        <input type="number" id="sleepInput" placeholder="Example: 7" />
+
+        <button onclick="analyzeHealth()">Analyze Patient Health</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+
+        <div class="dashboard-grid">
+          <div class="data-box">Patient<span id="patientOutput">-</span></div>
+          <div class="data-box">Heart Rate<span id="heartRate">-</span>BPM</div>
+          <div class="data-box">Oxygen Level<span id="oxygenOutput">-</span>%</div>
+          <div class="data-box">Stress Level<span id="stressOutput">-</span></div>
+          <div class="data-box">Sleep Hours<span id="sleepOutput">-</span>Hours</div>
+          <div class="data-box">Risk Level<span id="risk">-</span></div>
+          <div class="data-box">AI Security Level<span>98%</span></div>
+        </div>
+
+        <div id="analysisSections" style="display:none; margin-top:25px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;">
+            <div style="background:#1f1600;border-left:6px solid #ffd633;border-radius:18px;padding:24px;">
+              <h3 style="color:#ffd633;">Detected Health Problem</h3>
+              <p id="problemText">Waiting for analysis...</p>
+            </div>
+
+            <div style="background:#061a1f;border-left:6px solid #4da6ff;border-radius:18px;padding:24px;">
+              <h3 style="color:#4da6ff;">Patient Health Summary</h3>
+              <p id="healthSummaryText">Waiting for analysis...</p>
+            </div>
+
+            <div style="background:#071f12;border-left:6px solid #00ff99;border-radius:18px;padding:24px;">
+              <h3 style="color:#00ff99;">AI Recommendation</h3>
+              <p id="recommendationText">Waiting for analysis...</p>
+            </div>
+
+            <div style="background:#17071f;border-left:6px solid #c77dff;border-radius:18px;padding:24px;">
+              <h3 style="color:#c77dff;">Cybersecurity Log</h3>
+              <p id="cyberLogText">Waiting for analysis...</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="aiResult">
+          <strong>AI Result:</strong>
+          <p id="resultText"></p>
+        </div>
+
+        <div id="emergencyBox">
+          <strong>Emergency Secure Message:</strong>
+          <p id="emergencyText"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="conclusion">
+      <h2>Conclusion: Patient Health Benefits</h2>
+      <p>
+        LifeShield AI helps medical staff understand a patient’s condition quickly. By checking heart rate, oxygen level, stress level, and sleep hours, the system can show whether the patient looks stable or may need attention.
+        It does not replace a doctor, but it supports early warning, faster decisions, and safer patient monitoring.
+      </p>
+
+      <div style="margin-top:30px;background:#101820;border-left:6px solid #4da6ff;border-radius:18px;padding:25px;">
+        <h3 style="color:#4da6ff;margin-bottom:10px;">What the system can tell about patient health</h3>
+        <p><strong>Normal signs:</strong> The patient is probably stable, but regular monitoring should continue.</p>
+        <p><strong>Low heart rate or low oxygen:</strong> The patient may feel weakness, dizziness, tiredness, or breathing difficulty.</p>
+        <p><strong>High heart rate and high stress:</strong> The patient may be stressed, dehydrated, anxious, or physically tired.</p>
+        <p><strong>Dangerous signs:</strong> The patient may need urgent medical attention and emergency contact.</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>LifeShield AI | AI Healthcare and Cybersecurity Innovation Project</p>
+    </footer>
+  </div>
+
+  <script>
+    const correctPatientName = "admin";
+    const correctPassword = "lifeshield123";
+    const emergencyContact = "Cybersecurity Monitoring System";
+    let failedAttempts = 0;
+
+    function patientLogin() {
+      const name = document.getElementById("loginName").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const loginMessage = document.getElementById("loginMessage");
+      const warningMessage = document.getElementById("warningMessage");
+
+      loginMessage.style.display = "none";
+      warningMessage.style.display = "none";
+
+      if (name === correctPatientName && password === correctPassword) {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("mainWebsite").style.display = "block";
+        document.getElementById("patientWelcome").innerText = correctPatientName;
+        document.getElementById("patientOutput").innerText = "Select patient";
+      } else {
+        failedAttempts++;
+        loginMessage.style.display = "block";
+        loginMessage.innerHTML = "<strong>Access Denied:</strong> Username or password is incorrect.";
+
+        warningMessage.style.display = "block";
+        warningMessage.innerHTML = "<strong>Security Message Sent:</strong> The system detected an unauthorized login attempt and automatically notified the cybersecurity monitoring system.";
+
+        if (failedAttempts >= 3) {
+          loginMessage.innerHTML = "<strong>Cybersecurity Alert:</strong> Too many failed attempts. Possible unauthorized access detected. Account temporarily locked for safety.";
+        }
+      }
+    }
+
+    function analyzeHealth() {
+      const heartRate = Number(document.getElementById("heartInput").value);
+      const oxygenLevel = Number(document.getElementById("oxygenInput").value);
+      const stressLevel = document.getElementById("stressInput").value;
+      const sleepHours = Number(document.getElementById("sleepInput").value);
+      const selectedPatient = document.getElementById("selectedPatient").value;
+
+      const resultBox = document.getElementById("aiResult");
+      const resultText = document.getElementById("resultText");
+      const recommendationText = document.getElementById("recommendationText");
+      const problemText = document.getElementById("problemText");
+      const healthSummaryText = document.getElementById("healthSummaryText");
+      const cyberLogText = document.getElementById("cyberLogText");
+      const analysisSections = document.getElementById("analysisSections");
+      const emergencyBox = document.getElementById("emergencyBox");
+      const emergencyText = document.getElementById("emergencyText");
+      const risk = document.getElementById("risk");
+
+      emergencyBox.style.display = "none";
+
+      if (heartRate <= 0 || oxygenLevel <= 0 || sleepHours <= 0) {
+        resultBox.style.display = "block";
+        resultText.innerText = "Please enter all patient health information correctly.";
+        return;
+      }
+
+      document.getElementById("patientOutput").innerText = selectedPatient;
+      document.getElementById("heartRate").innerText = heartRate;
+      document.getElementById("oxygenOutput").innerText = oxygenLevel;
+      document.getElementById("stressOutput").innerText = stressLevel;
+      document.getElementById("sleepOutput").innerText = sleepHours;
+
+      resultBox.style.display = "block";
+      analysisSections.style.display = "block";
+      cyberLogText.innerText = "Patient data was analyzed inside a secure session. No unauthorized access detected during this health check.";
+
+      let dangerScore = 0;
+      if (heartRate < 60 || heartRate > 100) dangerScore++;
+      if (heartRate > 130) dangerScore += 2;
+      if (oxygenLevel < 95) dangerScore++;
+      if (oxygenLevel < 90) dangerScore += 2;
+      if (stressLevel === "High") dangerScore++;
+      if (sleepHours < 5) dangerScore++;
+
+      if (dangerScore === 0) {
+        risk.innerText = "Normal";
+        risk.style.color = "#00ff99";
+        resultText.innerText = "The patient data looks stable based on the entered values.";
+        problemText.innerText = "No serious health problem detected in this reading.";
+        healthSummaryText.innerText = "The patient appears stable according to heart rate, oxygen level, stress level, and sleep information.";
+        recommendationText.innerText = "Continue normal activity, healthy habits, regular monitoring, and daily health tracking.";
+      } else if (dangerScore <= 2) {
+        risk.innerText = "Warning";
+        risk.style.color = "#ffd633";
+        resultText.innerText = "Some values are outside the ideal range. The patient should be monitored.";
+        problemText.innerText = "Possible early health warning: stress, low sleep, abnormal heart rate, or oxygen change may affect the patient.";
+        healthSummaryText.innerText = "The patient may feel tired, weak, dizzy, stressed, or uncomfortable depending on symptoms.";
+        recommendationText.innerText = "Rest, drink water, reduce stress, and check the values again after a few minutes.";
+      } else if (dangerScore <= 4) {
+        risk.innerText = "High";
+        risk.style.color = "orange";
+        resultText.innerText = "The patient has multiple risk signs. Medical attention may be needed if symptoms continue.";
+        problemText.innerText = "Possible tachycardia, low oxygen, high stress, or sleep deprivation risk.";
+        healthSummaryText.innerText = "The patient may be stressed, dehydrated, anxious, tired, or physically weak. Low oxygen can increase risk.";
+        recommendationText.innerText = "Sit down, breathe slowly, avoid physical activity, and contact medical staff if symptoms continue.";
+      } else {
+        risk.innerText = "Danger";
+        risk.style.color = "#ff4d4d";
+        resultText.innerText = "Dangerous health condition detected. Immediate medical attention may be needed.";
+        problemText.innerText = "Critical risk: the patient may be at risk of a serious cardiac or respiratory event.";
+        healthSummaryText.innerText = "The patient may experience chest pain, breathing difficulty, panic, sweating, low oxygen, or extreme weakness.";
+        recommendationText.innerText = "Emergency mode is prepared. The system can send a secure report to family, hospital staff, and emergency contacts.";
+        cyberLogText.innerText = "Emergency health data was encrypted and prepared for secure transmission to authorized emergency contacts only.";
+        emergencyBox.style.display = "block";
+        emergencyText.innerText = "Secure alert sent to " + emergencyContact + ": " + selectedPatient + " has dangerous health readings.";
+      }
+    }
+
+    function logout() {
+      document.getElementById("mainWebsite").style.display = "none";
+      document.getElementById("loginScreen").style.display = "flex";
+      document.getElementById("loginName").value = "";
+      document.getElementById("loginPassword").value = "";
+      document.getElementById("heartInput").value = "";
+      document.getElementById("oxygenInput").value = "";
+      document.getElementById("sleepInput").value = "";
+      document.getElementById("loginMessage").style.display = "none";
+      document.getElementById("warningMessage").style.display = "none";
+    }
+  </script>
+</body>
+</html>
